@@ -8,7 +8,7 @@
     "start": "node server.js"
   },
   "keywords": [],
-  "author": "Ximena Fabian",
+  "author": "xf",
   "license": "ISC",
   "dependencies": {
     "express": "^4.18.2"
