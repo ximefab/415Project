@@ -18,6 +18,7 @@ app.get('/rest/list/', (req, res) => {
       }
 
     // send tickets data
+    console.log(tickets);
     res.send(tickets);
 })
 
@@ -31,7 +32,8 @@ app.get('/rest/ticket/:id', (req, res) => {
         return res.status(404).send("Ticket not found. Make sure you put the right id number!");
     }
 
-    //send single ticket data 
+    //send single ticket data
+    console.log(ticket) 
     res.send(ticket);
 })
 
