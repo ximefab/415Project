@@ -1,6 +1,21 @@
 const express = require('express')
 const app = express()
 const fs = require('fs');
+const bodyParser = require('body-parser');
+app.use(bodyParser.urlencoded({ extended: true }));
+const path = require('path');
+
+
+app.get('/Post', function(req, res) {
+  res.sendFile(path.join(__dirname + '/first.html'));
+  
+});
+
+app.get('/Update', function(req, res) {
+  res.sendFile(path.join(__dirname + '/second.html'));
+  
+});
+
 
 // read the content/data of tickets.json file
 const ticketsData = fs.readFileSync('./tickets.json');
@@ -40,13 +55,32 @@ app.get('/rest/ticket/:id', (req, res) => {
 
 //Post API to make a new ticket
 app.use(express.json());
-app.post('/rest/ticket', (req, res) => {
-    const { id, subject, description, priority, status, recipient, submitter, assignee_id, follower_ids, tags } = req.body;
+app.post('/rest/maketicket', (req, res) => {
+    const { id, type, subject, description, priority, status, recipient, submitter, assignee_id, follower_ids, tags } = req.body;
     
     //Error checking for invalid subject, description, priority, status, recipient, submitter, or tags missing. 
-    if (!subject || !description || !priority || !status || !recipient || !submitter || !tags) {
-        return res.status(400).send("Error! Incomplete ticket info. Check your inputs for subject, description, priority, status, recipient, submitter, or tags.");
-      }
+    if (!subject) {
+      return res.status(400).send("Error! Missing subject field.");
+    }
+    if (!type) {
+      return res.status(400).send("Error! Missing type field.");
+    }
+    if (!description) {
+      return res.status(400).send("Error! Missing description field.");
+    }
+    if (!priority) {
+      return res.status(400).send("Error! Missing priority field.");
+    }
+    if (!status) {
+      return res.status(400).send("Error! Missing status field.");
+    }
+    if (!recipient) {
+      return res.status(400).send("Error! Missing recipient field.");
+    }
+    if (!submitter) {
+      return res.status(400).send("Error! Missing submitter field.");
+    }
+
     
       //Error checking to make sure the assignee and follower dont have duplicating ids, sends prompt that the id already exist if thats the case for either of them
     const existingAssignee = tickets.find(ticket => ticket.assignee_id === assignee_id);
@@ -59,7 +93,7 @@ app.post('/rest/ticket', (req, res) => {
 
     let newId;
     
-    if (!id) {
+    if (!id || id==null) {
       newId = tickets.length + 1;
     } else {
       newId = Number(id);
@@ -74,7 +108,7 @@ app.post('/rest/ticket', (req, res) => {
       id: newId,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
-      type: "incident",
+      type: type,
       subject: subject,
       description: description,
       priority: priority,
@@ -96,7 +130,54 @@ app.post('/rest/ticket', (req, res) => {
     res.status(201).json(newTicket);
   });
 
+  // DELETE API to delete a single ticket by ID
+app.delete('/rest/ticket/:id', (req, res) => {
+  // Find the index of the ticket with the given ID
+  const index = tickets.findIndex((ticket) => ticket.id === Number(req.params.id));
+
+  // If no ticket is found with the given ID, return a 404 error
+  if (index === -1) {
+    return res.status(404).send('Ticket not found');
+  }
+
+  // Remove the ticket from the tickets array
+  const deletedTicket = tickets.splice(index, 1)[0];
+
+  // Write the updated tickets array into the tickets.json file
+  fs.writeFileSync('./tickets.json', JSON.stringify(tickets, null, 2));
+
+  // Print "Deleted successfully!" to the console
+  console.log("Deleted successfully!");
+
+  // Return the deleted ticket as JSON
+  res.status(200).json(deletedTicket);
+});
+
+
+
+// PUT API to update a single ticket by ID
+app.put('/rest/ticket/:id', (req, res) => {
+  const index = tickets.findIndex((ticket) => ticket.id === Number(req.params.id));
+
+  // If no ticket is found with the given ID, return a 404 error
+  if (index === -1) {
+    return res.status(404).send('Ticket not found');
+  }
+
+  // Replace the ticket with the updated ticket
+  const updatedTicket = { ...tickets[index], ...req.body };
+  tickets[index] = updatedTicket;
+
+
+  fs.writeFileSync('./tickets.json', JSON.stringify(tickets, null, 2));
+  res.status(200).json(updatedTicket);
+});
+
 app.listen(3000, ()=>{
     console.log(`Node API app is running on port 3000`)
 
 })
+
+
+
+

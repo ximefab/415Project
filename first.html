@@ -1,0 +1,30 @@
+<html>
+   <head>
+      <title>Posting Data</title>
+   </head>
+
+   <body style = "font-family: arial, sans-serif" 
+      style = "background-color: #ffffff">
+
+      <h1>Here you can make a new ticket!</h1>
+	
+      <form action="./rest/maketicket" method=POST>
+      ID: <input type=number name=id required><br>
+      created_at: <input type=text name="created_at" value="already calculated"><br>
+      updated_at: <input type=text name="updated_at" value="already calculated"><br>
+      type: <input type=text name="type" ><br>
+      subject: <input type=text name="subject" ><br>
+      description: <input type=text name="description" ><br>
+      priority: <input type=text name="priority" ><br>
+      status: <input type=text name="status" ><br>
+      recipient: <input type=text name="recipient" ><br>
+      submitter: <input type=text name="submitter" ><br>
+      assignee_id: <input type=text name="assignee_id" ><br>
+      follower_ids: <input type=text name="follower_ids" ><br>
+      <input type=submit name="submit" value="Make ticket"><p>
+      </form>
+      <br></br>
+      <br></br>
+
+   </body>
+</html>
