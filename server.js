@@ -121,7 +121,7 @@ app.post('/rest/maketicket', async (req, res) => {
     return res.status(400).send('Missing required fields');
   }
 
-  //something
+  //somethin
   // Create a new ticket object using the request body
   const newTicket = {
     _id: parseInt(id),
