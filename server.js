@@ -6,7 +6,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
 const path = require('path');
 const mongoose = require('mongoose');
 const { MongoClient } = require('mongodb');
-
+const axios = require('axios');
 
 //app.get/post and /update link the html forms to the route /post and /update
 
@@ -21,7 +21,7 @@ app.get('/Update', function(req, res) {
 });
 
 
-// const Ticket = require('../models/ticket');
+
 
 const uri = 'mongodb+srv://User1:CxA5WyB3MGfxyrQ8@ximfab415.pisguor.mongodb.net/';
 const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true });
@@ -73,6 +73,129 @@ app.get('/rest/ticket/:id', async (req, res) => {
     res.status(500).send('Internal server error');
   }
 });
+
+
+
+
+
+class TicketAdapter {
+  // Converts JSON to XML
+  toXML(ticket) {
+    const xml = `
+      <ticket>
+        <id>${ticket._id}</id>
+        <type>${ticket.type}</type>
+        <subject>${ticket.subject}</subject>
+        <description>${ticket.description}</description>
+        <priority>${ticket.priority}</priority>
+        <status>${ticket.status}</status>
+        <recipient>${ticket.recipient}</recipient>
+        <submitter>${ticket.submitter}</submitter>
+        <assignee_id>${ticket.assignee_id}</assignee_id>
+        <follower_ids>${ticket.follower_ids}</follower_ids>
+        <createdAt>${ticket.createdAt}</createdAt>
+        <updatedAt>${ticket.updatedAt}</updatedAt>
+      </ticket>
+    `;
+    return xml;
+  }
+
+  // Converts XML to JSON
+toJSON(ticket) {
+  var obj = {
+
+    _id: ticket.id,
+    type: ticket.type,
+    subject: ticket.subject,
+    description: ticket.description,
+    priority: ticket.priority,
+    status: ticket.status,
+    recipient: ticket.recipient,
+    submitter: ticket.submitter,
+    assignee_id: ticket.assignee_id,
+    follower_ids: ticket.follower_ids,
+    createdAt: ticket.createdAt,
+    updatedAt: ticket.UpdatedAt
+  };
+
+
+
+  return obj;
+}
+}
+
+const ticketAdapter = new TicketAdapter();
+
+app.get('/rest/xml/ticket/:id', async (req, res) => {
+  try {
+    const id = req.params.id;
+    const response = await axios.get(`http://localhost:3000/rest/ticket/${id}`);
+    const ticket = response.data;
+
+    // Convert JSON to XML using the adapter
+    const xml = ticketAdapter.toXML(ticket);
+
+    res.set('Content-Type', 'application/xml');
+    res.send(xml);
+  } catch (error) {
+    console.error(error);
+    res.status(500).send('Internal server error');
+  }
+});
+
+
+
+app.put('/rest/xml/ticket/:id', async (req, res) => {
+  try {
+    const id = req.params.id;
+    const xmlData = req.body;
+
+    // Convert XML to JSON using the adapter
+    const jsonData = ticketAdapter.toJSON(xmlData);
+
+    const db = await dbPromise;
+    const collection = db.collection('415');
+
+    // Check if the ticket with the given id already exists
+    const existingTicket = await collection.findOne({ _id: Number(id) });
+    if (existingTicket) {
+      return res.status(409).send('Ticket already exists with the given id!');
+    }
+
+    // Add the new ticket to the collection
+    await collection.insertOne({
+      _id: Number(id),
+      type: jsonData.type,
+      subject: jsonData.subject,
+      description: jsonData.description,
+      priority: jsonData.priority,
+      status: jsonData.status,
+      recipient: jsonData.recipient,
+      submitter: jsonData.submitter,
+      assignee_id: jsonData.assignee_id,
+      follower_ids: jsonData.follower_ids,
+      createdAt: new Date(jsonData.createdAt),
+      updatedAt: new Date(jsonData.updatedAt)
+    });
+
+    // Fetch the added ticket using the existing endpoint
+    const response = await axios.get(`http://localhost:3000/rest/ticket/${id}`);
+    //comment test
+    const ticket = response.data;
+
+    // Convert JSON to XML using the adapter
+    const xml = ticketAdapter.toXML(ticket);
+
+    res.set('Content-Type', 'application/xml');
+    res.send(xml);
+  } catch (error) {
+    console.error(error);
+    res.status(500).send('Internal server error');
+  }
+});
+
+
+
 
 //here you delete a ticket from the db!
 app.delete('/rest/ticket/:id', async (req, res) => {
@@ -193,6 +316,8 @@ app.put('/rest/ticket/:id', async (req, res) => {
     res.status(500).send('Internal server error');
   }
 });
+
+
 
 
 app.listen(3000, ()=>{
