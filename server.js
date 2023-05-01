@@ -20,7 +20,9 @@ app.get('/Update', function(req, res) {
   
 });
 
-
+app.get("/", (req, res) => {
+  res.json({ message: "Welcome! To post, go to /post. To update or delete a ticket go to /update. To view a ticket as XML format go to rest/xml/ticket/{id}" });
+});
 
 
 const uri = 'mongodb+srv://User1:CxA5WyB3MGfxyrQ8@ximfab415.pisguor.mongodb.net/';
